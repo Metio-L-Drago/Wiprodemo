@@ -1,0 +1,277 @@
+ What is “Ownership” in Linux? 
+
+Every file/directory in Linux has TWO owners: 
+
+ 
+
+[ USER OWNER ]  [ GROUP OWNER ] 
+ 
+
+Example: 
+
+ 
+
+ls -ld /company/it 
+ 
+
+Output: 
+
+ 
+
+drwxr-x---  2 root it  4096 Jan 13  /company/it 
+ 
+
+User owner → root 
+
+Group owner → it 
+
+ 
+ 
+
+2️⃣ Why Ownership Matters (Enterprise View) 
+
+Ownership decides: 
+
+Who can read 
+
+Who can write 
+
+Who can execute / enter directories 
+
+Permissions (rwx) are always checked in this order: 
+
+User owner 
+
+Group owner 
+
+Others 
+
+So ownership is checked before permissions. 
+
+ 
+ 
+
+3️⃣ The chown Command (Syntax) 
+
+Basic syntax: 
+
+ 
+
+chown [USER]:[GROUP] file_or_directory 
+ 
+
+Valid combinations: 
+
+Command 
+
+Meaning 
+
+chown alice file 
+
+Change user owner only 
+
+chown :it file 
+
+Change group owner only 
+
+chown alice:it file 
+
+Change user + group 
+
+chown -R :it dir 
+
+Change group recursively 
+
+ 
+ 
+
+4️⃣ Step 6 – What We Are Trying To Do 
+
+👉 Goal: 
+
+Make department groups own their directories. 
+
+Directory 
+
+Group Owner 
+
+/company/it 
+
+it 
+
+/company/soc 
+
+soc 
+
+/company/hr 
+
+hr 
+
+We do NOT change user owner, only the group. 
+
+ 
+ 
+
+5️⃣ Correct Step 6 Commands (Explained) 
+
+✅ Change group ownership ONLY 
+
+ 
+
+sudo chown :it /company/it 
+ 
+
+Meaning: 
+
+: → do not touch user owner 
+
+it → set group owner to it 
+
+/company/it → target directory 
+
+After this: 
+
+ 
+
+ls -ld /company/it 
+ 
+
+Expected: 
+
+ 
+
+drwxr-x--- root it /company/it 
+ 
+
+ 
+ 
+
+✅ SOC directory 
+
+ 
+
+sudo chown :soc /company/soc 
+ 
+
+ 
+ 
+
+✅ HR directory 
+
+ 
+
+sudo chown :hr /company/hr 
+ 
+
+ 
+ 
+
+6️⃣ Why Your Command Failed Earlier 
+
+You ran: 
+
+ 
+
+sudo chown :it /company/it 
+ 
+
+Error: 
+
+ 
+
+No such file or directory 
+ 
+
+🔍 Root cause: 
+
+/company/it did not exist 
+
+chown never reached ownership logic 
+
+Path validation failed first 
+
+📌 Golden rule: 
+
+chown fails if the path does not exist — even if group is valid. 
+
+ 
+ 
+
+7️⃣ Verification (MANDATORY Step) 
+
+ 
+
+ls -ld /company/* 
+ 
+
+Look at 2nd and 3rd columns: 
+
+ 
+
+root it 
+root soc 
+root hr 
+ 
+
+That confirms group ownership. 
+
+ 
+ 
+
+8️⃣ chown vs chgrp (Important Interview Point) 
+
+chown 
+
+ 
+
+chown :it /company/it 
+ 
+
+Can change user + group 
+
+More powerful 
+
+chgrp 
+
+ 
+
+chgrp it /company/it 
+ 
+
+Changes group only 
+
+Safer in some environments 
+
+👉 Internally, chgrp is a subset of chown. 
+
+ 
+ 
+
+9️⃣ Real Enterprise Reasoning 
+
+Why keep user owner as root? 
+
+✅ Security 
+
+✅ Prevent accidental deletion 
+
+✅ Central control 
+
+✅ Only group members collaborate 
+
+If IT user deletes a file: 
+
+Allowed by group permissions 
+
+Root still owns structure 
+
+ 
+ 
+
+🎓 Interview-Perfect Answer (Memorize) 
+
+“Linux ownership consists of a user owner and a group owner. 
+
+In enterprise environments, directories are often owned by root but assigned to a department group using chown :group. 
+
+This allows controlled collaboration while preventing accidental privilege abuse.” 

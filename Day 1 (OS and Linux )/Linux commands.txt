@@ -1,0 +1,294 @@
+🧪 Linux – Individual Commands 
+
+User, Group, Directory & Permission Management 
+
+⚠️ Run all commands as root or with sudo 
+
+ 
+ 
+
+🔐 1. Check Current User 
+
+ 
+
+whoami 
+ 
+
+ 
+
+id 
+ 
+
+ 
+ 
+
+👥 2. Create Groups 
+
+ 
+
+groupadd it 
+
+ 
+
+groupadd soc 
+ 
+
+ 
+
+groupadd hr 
+ 
+
+Verify Groups 
+
+ 
+
+getent group it 
+getent group soc 
+getent group hr 
+ 
+
+ 
+ 
+
+👤 3. Create Users 
+
+ 
+
+useradd -m -s /bin/bash alice 
+ 
+
+ 
+
+useradd -m -s /bin/bash bob 
+ 
+
+ 
+
+useradd -m -s /bin/bash carol 
+ 
+
+Set Passwords 
+
+ 
+
+passwd alice 
+passwd bob 
+passwd carol 
+ 
+
+ 
+ 
+
+🔗 4. Add Users to Groups 
+
+ 
+
+usermod -aG it alice 
+ 
+
+ 
+
+usermod -aG soc bob 
+ 
+
+ 
+
+usermod -aG hr carol 
+ 
+
+Verify Group Membership 
+
+ 
+
+id alice 
+id bob 
+id carol 
+ 
+
+ 
+ 
+
+📁 5. Create Directories 
+
+ 
+
+mkdir /company 
+ 
+
+ 
+
+mkdir /company/it 
+mkdir /company/soc 
+mkdir /company/hr 
+ 
+
+Or (single command) 
+
+ 
+
+mkdir -p /company/{it,soc,hr} 
+ 
+
+ 
+ 
+
+👑 6. Change Ownership (User + Group) 
+
+Change group ownership only 
+
+ 
+
+chown :it /company/it 
+ 
+
+ 
+
+chown :soc /company/soc 
+ 
+
+ 
+
+chown :hr /company/hr 
+ 
+
+ 
+ 
+
+🔐 7. Set Directory Permissions 
+
+IT – Full access for owner & group 
+
+ 
+
+chmod 770 /company/it 
+ 
+
+SOC – Owner full, group read/execute 
+
+ 
+
+chmod 750 /company/soc 
+ 
+
+HR – Owner only (highly confidential) 
+
+ 
+
+chmod 700 /company/hr 
+ 
+
+ 
+ 
+
+🔁 8. Change Group Ownership (Existing Directory) 
+
+ 
+
+chgrp it /company/it 
+ 
+
+ 
+
+chgrp soc /company/soc 
+ 
+
+ 
+
+chgrp hr /company/hr 
+ 
+
+ 
+ 
+
+🔍 9. Verify Permissions & Ownership 
+
+ 
+
+ls -ld /company/* 
+ 
+
+Expected output example: 
+
+ 
+
+drwxrwx---  root it   /company/it 
+drwxr-x---  root soc  /company/soc 
+drwx------  root hr   /company/hr 
+ 
+
+ 
+ 
+
+🧪 10. Test Access (Switch User) 
+
+ 
+
+su - alice 
+cd /company/it 
+touch testfile 
+exit 
+ 
+
+ 
+
+su - bob 
+cd /company/hr 
+ 
+
+❌ Permission denied (expected) 
+
+ 
+ 
+
+🧠 11. Important Interview Commands 
+
+Show all groups a user belongs to 
+
+ 
+
+groups alice 
+ 
+
+Show group members 
+
+ 
+
+getent group it 
+ 
+
+Show directory permissions in numeric format 
+
+ 
+
+stat /company/it 
+ 
+
+ 
+ 
+
+🎓 Interview / Viva Gold Questions 
+
+Why is -a mandatory in usermod -aG? 
+
+Difference between chmod 770 and chmod 750 
+
+Difference between chown and chgrp 
+
+Why HR directory should not have group access? 
+
+What happens if /company has open permissions? 
+
+ 
+ 
+
+🧠 Real Enterprise Use 
+
+Linux server onboarding 
+
+SOC lab isolation 
+
+Compliance (PCI, ISO) 
+
+Least-privilege enforcement 
+
+Blue Team practice 

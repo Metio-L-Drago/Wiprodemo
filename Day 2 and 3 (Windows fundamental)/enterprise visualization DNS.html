@@ -1,0 +1,2421 @@
+<!DOCTYPE html> 
+
+<html lang="en"> 
+
+<head> 
+
+    <meta charset="UTF-8"> 
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
+    <title>Enterprise Infrastructure Simulator | AD + DNS + DHCP</title> 
+
+    <style> 
+
+        /* ==================== GLOBAL FOUNDATION ==================== */ 
+
+        * { 
+
+            margin: 0; 
+
+            padding: 0; 
+
+            box-sizing: border-box; 
+
+        } 
+
+ 
+
+        body { 
+
+            font-family: 'Segoe UI', 'Roboto', sans-serif; 
+
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%); 
+
+            color: #e0e6ed; 
+
+            min-height: 100vh; 
+
+            overflow-x: hidden; 
+
+        } 
+
+ 
+
+        /* ==================== HEADER ==================== */ 
+
+        .header { 
+
+            background: linear-gradient(90deg, #1a1f3a 0%, #2d3561 100%); 
+
+            border-bottom: 2px solid #00d4ff; 
+
+            padding: 20px 40px; 
+
+            display: flex; 
+
+            justify-content: space-between; 
+
+            align-items: center; 
+
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2); 
+
+        } 
+
+ 
+
+        .header-left h1 { 
+
+            font-size: 24px; 
+
+            font-weight: 600; 
+
+            color: #00d4ff; 
+
+            text-transform: uppercase; 
+
+            letter-spacing: 2px; 
+
+        } 
+
+ 
+
+        .header-left p { 
+
+            font-size: 12px; 
+
+            color: #8892a6; 
+
+            margin-top: 4px; 
+
+        } 
+
+ 
+
+        .header-right { 
+
+            display: flex; 
+
+            gap: 20px; 
+
+            align-items: center; 
+
+        } 
+
+ 
+
+        .system-status { 
+
+            display: flex; 
+
+            gap: 15px; 
+
+        } 
+
+ 
+
+        .status-indicator { 
+
+            display: flex; 
+
+            align-items: center; 
+
+            gap: 8px; 
+
+            padding: 8px 16px; 
+
+            background: rgba(255, 255, 255, 0.05); 
+
+            border-radius: 6px; 
+
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+
+        } 
+
+ 
+
+        .status-dot { 
+
+            width: 10px; 
+
+            height: 10px; 
+
+            border-radius: 50%; 
+
+            animation: pulse 2s infinite; 
+
+        } 
+
+ 
+
+        .status-dot.active { background: #00ff88; box-shadow: 0 0 10px #00ff88; } 
+
+        .status-dot.warn { background: #ffa500; box-shadow: 0 0 10px #ffa500; } 
+
+        .status-dot.error { background: #ff4444; box-shadow: 0 0 10px #ff4444; } 
+
+ 
+
+        @keyframes pulse { 
+
+            0%, 100% { opacity: 1; } 
+
+            50% { opacity: 0.5; } 
+
+        } 
+
+ 
+
+        /* ==================== MAIN LAYOUT ==================== */ 
+
+        .container { 
+
+            display: grid; 
+
+            grid-template-columns: 1fr 1fr; 
+
+            gap: 20px; 
+
+            padding: 20px; 
+
+            max-width: 1920px; 
+
+            margin: 0 auto; 
+
+        } 
+
+ 
+
+        .panel { 
+
+            background: rgba(26, 31, 58, 0.8); 
+
+            border: 1px solid rgba(0, 212, 255, 0.3); 
+
+            border-radius: 8px; 
+
+            padding: 20px; 
+
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
+
+        } 
+
+ 
+
+        .panel-header { 
+
+            display: flex; 
+
+            justify-content: space-between; 
+
+            align-items: center; 
+
+            margin-bottom: 20px; 
+
+            padding-bottom: 12px; 
+
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3); 
+
+        } 
+
+ 
+
+        .panel-title { 
+
+            font-size: 18px; 
+
+            font-weight: 600; 
+
+            color: #00d4ff; 
+
+            text-transform: uppercase; 
+
+            letter-spacing: 1.5px; 
+
+        } 
+
+ 
+
+        .panel-badge { 
+
+            padding: 4px 12px; 
+
+            background: rgba(0, 212, 255, 0.2); 
+
+            border: 1px solid #00d4ff; 
+
+            border-radius: 4px; 
+
+            font-size: 11px; 
+
+            font-weight: 600; 
+
+            color: #00d4ff; 
+
+        } 
+
+ 
+
+        /* ==================== STAGE PROGRESSION ==================== */ 
+
+        .stages-container { 
+
+            grid-column: 1 / -1; 
+
+        } 
+
+ 
+
+        .stages-grid { 
+
+            display: grid; 
+
+            grid-template-columns: repeat(7, 1fr); 
+
+            gap: 12px; 
+
+            margin-bottom: 20px; 
+
+        } 
+
+ 
+
+        .stage { 
+
+            background: rgba(255, 255, 255, 0.03); 
+
+            border: 2px solid rgba(255, 255, 255, 0.1); 
+
+            border-radius: 8px; 
+
+            padding: 16px; 
+
+            text-align: center; 
+
+            cursor: pointer; 
+
+            transition: all 0.3s ease; 
+
+            position: relative; 
+
+        } 
+
+ 
+
+        .stage:hover { 
+
+            transform: translateY(-2px); 
+
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3); 
+
+        } 
+
+ 
+
+        .stage.active { 
+
+            background: rgba(0, 212, 255, 0.1); 
+
+            border-color: #00d4ff; 
+
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); 
+
+        } 
+
+ 
+
+        .stage.completed { 
+
+            background: rgba(0, 255, 136, 0.1); 
+
+            border-color: #00ff88; 
+
+        } 
+
+ 
+
+        .stage.failed { 
+
+            background: rgba(255, 68, 68, 0.1); 
+
+            border-color: #ff4444; 
+
+        } 
+
+ 
+
+        .stage.locked { 
+
+            opacity: 0.4; 
+
+            cursor: not-allowed; 
+
+        } 
+
+ 
+
+        .stage-number { 
+
+            font-size: 14px; 
+
+            color: #8892a6; 
+
+            margin-bottom: 8px; 
+
+        } 
+
+ 
+
+        .stage-name { 
+
+            font-size: 13px; 
+
+            font-weight: 600; 
+
+            color: #e0e6ed; 
+
+            margin-bottom: 8px; 
+
+        } 
+
+ 
+
+        .stage-status { 
+
+            font-size: 11px; 
+
+            padding: 4px 8px; 
+
+            border-radius: 4px; 
+
+            font-weight: 600; 
+
+            display: inline-block; 
+
+        } 
+
+ 
+
+        .stage-status.wait { background: #8892a6; color: #1a1f3a; } 
+
+        .stage-status.ok { background: #00ff88; color: #1a1f3a; } 
+
+        .stage-status.fail { background: #ff4444; color: #fff; } 
+
+        .stage-status.running { background: #00d4ff; color: #1a1f3a; animation: blink 1s infinite; } 
+
+ 
+
+        @keyframes blink { 
+
+            0%, 100% { opacity: 1; } 
+
+            50% { opacity: 0.6; } 
+
+        } 
+
+ 
+
+        /* ==================== CONTROLS ==================== */ 
+
+        .controls { 
+
+            display: flex; 
+
+            gap: 12px; 
+
+            margin-top: 20px; 
+
+            flex-wrap: wrap; 
+
+        } 
+
+ 
+
+        .btn { 
+
+            padding: 12px 24px; 
+
+            border: none; 
+
+            border-radius: 6px; 
+
+            font-size: 14px; 
+
+            font-weight: 600; 
+
+            cursor: pointer; 
+
+            transition: all 0.3s ease; 
+
+            text-transform: uppercase; 
+
+            letter-spacing: 1px; 
+
+        } 
+
+ 
+
+        .btn-primary { 
+
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); 
+
+            color: #1a1f3a; 
+
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3); 
+
+        } 
+
+ 
+
+        .btn-primary:hover { 
+
+            transform: translateY(-2px); 
+
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5); 
+
+        } 
+
+ 
+
+        .btn-danger { 
+
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%); 
+
+            color: #fff; 
+
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3); 
+
+        } 
+
+ 
+
+        .btn-secondary { 
+
+            background: rgba(255, 255, 255, 0.1); 
+
+            color: #e0e6ed; 
+
+            border: 1px solid rgba(255, 255, 255, 0.3); 
+
+        } 
+
+ 
+
+        .btn:disabled { 
+
+            opacity: 0.4; 
+
+            cursor: not-allowed; 
+
+            transform: none !important; 
+
+        } 
+
+ 
+
+        /* ==================== SERVICE VIEW ==================== */ 
+
+        .service-grid { 
+
+            display: grid; 
+
+            gap: 12px; 
+
+            margin-top: 16px; 
+
+        } 
+
+ 
+
+        .service-item { 
+
+            background: rgba(255, 255, 255, 0.03); 
+
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+
+            border-radius: 6px; 
+
+            padding: 12px; 
+
+            display: flex; 
+
+            justify-content: space-between; 
+
+            align-items: center; 
+
+        } 
+
+ 
+
+        .service-name { 
+
+            font-size: 13px; 
+
+            color: #e0e6ed; 
+
+            font-weight: 500; 
+
+        } 
+
+ 
+
+        .service-value { 
+
+            font-size: 12px; 
+
+            color: #00d4ff; 
+
+            font-family: 'Courier New', monospace; 
+
+        } 
+
+ 
+
+        /* ==================== LOGS ==================== */ 
+
+        .logs-container { 
+
+            background: rgba(0, 0, 0, 0.4); 
+
+            border: 1px solid rgba(0, 212, 255, 0.2); 
+
+            border-radius: 6px; 
+
+            padding: 12px; 
+
+            height: 400px; 
+
+            overflow-y: auto; 
+
+            font-family: 'Courier New', monospace; 
+
+            font-size: 11px; 
+
+            line-height: 1.6; 
+
+        } 
+
+ 
+
+        .log-entry { 
+
+            padding: 6px 8px; 
+
+            margin-bottom: 4px; 
+
+            border-left: 3px solid transparent; 
+
+            border-radius: 2px; 
+
+        } 
+
+ 
+
+        .log-entry.info { 
+
+            border-left-color: #00d4ff; 
+
+            background: rgba(0, 212, 255, 0.05); 
+
+        } 
+
+ 
+
+        .log-entry.success { 
+
+            border-left-color: #00ff88; 
+
+            background: rgba(0, 255, 136, 0.05); 
+
+        } 
+
+ 
+
+        .log-entry.error { 
+
+            border-left-color: #ff4444; 
+
+            background: rgba(255, 68, 68, 0.05); 
+
+        } 
+
+ 
+
+        .log-entry.warn { 
+
+            border-left-color: #ffa500; 
+
+            background: rgba(255, 165, 0, 0.05); 
+
+        } 
+
+ 
+
+        .log-timestamp { 
+
+            color: #8892a6; 
+
+            margin-right: 8px; 
+
+        } 
+
+ 
+
+        .log-source { 
+
+            color: #00d4ff; 
+
+            margin-right: 8px; 
+
+            font-weight: 600; 
+
+        } 
+
+ 
+
+        .log-message { 
+
+            color: #e0e6ed; 
+
+        } 
+
+ 
+
+        /* ==================== FAILURE INJECTION ==================== */ 
+
+        .failure-controls { 
+
+            display: grid; 
+
+            grid-template-columns: repeat(2, 1fr); 
+
+            gap: 12px; 
+
+            margin-top: 16px; 
+
+        } 
+
+ 
+
+        .failure-toggle { 
+
+            display: flex; 
+
+            justify-content: space-between; 
+
+            align-items: center; 
+
+            padding: 12px; 
+
+            background: rgba(255, 68, 68, 0.1); 
+
+            border: 1px solid rgba(255, 68, 68, 0.3); 
+
+            border-radius: 6px; 
+
+        } 
+
+ 
+
+        .failure-label { 
+
+            font-size: 12px; 
+
+            color: #e0e6ed; 
+
+        } 
+
+ 
+
+        .toggle-switch { 
+
+            position: relative; 
+
+            width: 48px; 
+
+            height: 24px; 
+
+            background: rgba(255, 255, 255, 0.2); 
+
+            border-radius: 12px; 
+
+            cursor: pointer; 
+
+            transition: background 0.3s; 
+
+        } 
+
+ 
+
+        .toggle-switch.active { 
+
+            background: #ff4444; 
+
+        } 
+
+ 
+
+        .toggle-slider { 
+
+            position: absolute; 
+
+            top: 2px; 
+
+            left: 2px; 
+
+            width: 20px; 
+
+            height: 20px; 
+
+            background: #fff; 
+
+            border-radius: 50%; 
+
+            transition: transform 0.3s; 
+
+        } 
+
+ 
+
+        .toggle-switch.active .toggle-slider { 
+
+            transform: translateX(24px); 
+
+        } 
+
+ 
+
+        /* ==================== ASSESSMENT ==================== */ 
+
+        .assessment-panel { 
+
+            grid-column: 1 / -1; 
+
+            background: rgba(0, 212, 255, 0.1); 
+
+            border: 2px solid #00d4ff; 
+
+        } 
+
+ 
+
+        .assessment-grid { 
+
+            display: grid; 
+
+            grid-template-columns: repeat(4, 1fr); 
+
+            gap: 16px; 
+
+            margin-top: 16px; 
+
+        } 
+
+ 
+
+        .metric { 
+
+            text-align: center; 
+
+            padding: 16px; 
+
+            background: rgba(0, 0, 0, 0.3); 
+
+            border-radius: 6px; 
+
+        } 
+
+ 
+
+        .metric-value { 
+
+            font-size: 32px; 
+
+            font-weight: 700; 
+
+            color: #00d4ff; 
+
+            margin-bottom: 8px; 
+
+        } 
+
+ 
+
+        .metric-label { 
+
+            font-size: 12px; 
+
+            color: #8892a6; 
+
+            text-transform: uppercase; 
+
+        } 
+
+ 
+
+        .maturity-rating { 
+
+            text-align: center; 
+
+            margin-top: 20px; 
+
+            padding: 20px; 
+
+            background: rgba(0, 255, 136, 0.1); 
+
+            border: 2px solid #00ff88; 
+
+            border-radius: 8px; 
+
+        } 
+
+ 
+
+        .maturity-level { 
+
+            font-size: 28px; 
+
+            font-weight: 700; 
+
+            color: #00ff88; 
+
+            margin-bottom: 8px; 
+
+        } 
+
+ 
+
+        /* ==================== RESPONSIVE ==================== */ 
+
+        @media (max-width: 1400px) { 
+
+            .container { 
+
+                grid-template-columns: 1fr; 
+
+            } 
+
+            .stages-grid { 
+
+                grid-template-columns: repeat(4, 1fr); 
+
+            } 
+
+        } 
+
+ 
+
+        /* ==================== SCROLLBAR ==================== */ 
+
+        .logs-container::-webkit-scrollbar { 
+
+            width: 8px; 
+
+        } 
+
+ 
+
+        .logs-container::-webkit-scrollbar-track { 
+
+            background: rgba(0, 0, 0, 0.2); 
+
+        } 
+
+ 
+
+        .logs-container::-webkit-scrollbar-thumb { 
+
+            background: rgba(0, 212, 255, 0.3); 
+
+            border-radius: 4px; 
+
+        } 
+
+ 
+
+        .logs-container::-webkit-scrollbar-thumb:hover { 
+
+            background: rgba(0, 212, 255, 0.5); 
+
+        } 
+
+ 
+
+        /* ==================== NETWORK DIAGRAM ==================== */ 
+
+        .network-diagram { 
+
+            display: flex; 
+
+            justify-content: space-around; 
+
+            align-items: center; 
+
+            padding: 20px; 
+
+            background: rgba(0, 0, 0, 0.2); 
+
+            border-radius: 8px; 
+
+            margin-top: 16px; 
+
+            position: relative; 
+
+        } 
+
+ 
+
+        .network-node { 
+
+            text-align: center; 
+
+            position: relative; 
+
+        } 
+
+ 
+
+        .node-icon { 
+
+            width: 60px; 
+
+            height: 60px; 
+
+            background: rgba(0, 212, 255, 0.2); 
+
+            border: 2px solid #00d4ff; 
+
+            border-radius: 50%; 
+
+            display: flex; 
+
+            align-items: center; 
+
+            justify-content: center; 
+
+            margin: 0 auto 8px; 
+
+            font-size: 24px; 
+
+        } 
+
+ 
+
+        .node-label { 
+
+            font-size: 11px; 
+
+            color: #e0e6ed; 
+
+            font-weight: 600; 
+
+        } 
+
+ 
+
+        .connection-line { 
+
+            position: absolute; 
+
+            height: 2px; 
+
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent); 
+
+            top: 50%; 
+
+            animation: flow 2s infinite; 
+
+        } 
+
+ 
+
+        @keyframes flow { 
+
+            0% { opacity: 0.3; } 
+
+            50% { opacity: 1; } 
+
+            100% { opacity: 0.3; } 
+
+        } 
+
+    </style> 
+
+</head> 
+
+<body> 
+
+ 
+
+    <!-- ==================== HEADER ==================== --> 
+
+    <div class="header"> 
+
+        <div class="header-left"> 
+
+            <h1>Enterprise Infrastructure Simulator</h1> 
+
+            <p>Active Directory | DNS | DHCP | Production Training Environment</p> 
+
+        </div> 
+
+        <div class="header-right"> 
+
+            <div class="system-status"> 
+
+                <div class="status-indicator"> 
+
+                    <div class="status-dot active" id="systemStatus"></div> 
+
+                    <span id="systemStatusText">OPERATIONAL</span> 
+
+                </div> 
+
+                <div class="status-indicator"> 
+
+                    <span id="clockDisplay">00:00:00</span> 
+
+                </div> 
+
+            </div> 
+
+        </div> 
+
+    </div> 
+
+ 
+
+    <!-- ==================== MAIN CONTAINER ==================== --> 
+
+    <div class="container"> 
+
+ 
+
+        <!-- ==================== STAGE PROGRESSION ==================== --> 
+
+        <div class="panel stages-container"> 
+
+            <div class="panel-header"> 
+
+                <div class="panel-title">Stage Pipeline</div> 
+
+                <div class="panel-badge" id="currentStageDisplay">STAGE 0/7</div> 
+
+            </div> 
+
+            <div class="stages-grid" id="stagesGrid"></div> 
+
+            <div class="controls"> 
+
+                <button class="btn btn-primary" id="btnExecuteStage">Execute Current Stage</button> 
+
+                <button class="btn btn-secondary" id="btnReset">Reset Simulation</button> 
+
+            </div> 
+
+        </div> 
+
+ 
+
+        <!-- ==================== CLIENT VIEW ==================== --> 
+
+        <div class="panel"> 
+
+            <div class="panel-header"> 
+
+                <div class="panel-title">🖥️ Client View</div> 
+
+                <div class="panel-badge">WORKSTATION-01</div> 
+
+            </div> 
+
+            <div class="service-grid" id="clientStatus"></div> 
+
+            <div class="logs-container" id="clientLogs"></div> 
+
+        </div> 
+
+ 
+
+        <!-- ==================== SERVER VIEW ==================== --> 
+
+        <div class="panel"> 
+
+            <div class="panel-header"> 
+
+                <div class="panel-title">🖧 Server View</div> 
+
+                <div class="panel-badge">DC01.CORP.LOCAL</div> 
+
+            </div> 
+
+            <div class="service-grid" id="serverStatus"></div> 
+
+            <div class="logs-container" id="serverLogs"></div> 
+
+        </div> 
+
+ 
+
+        <!-- ==================== FAILURE INJECTION ==================== --> 
+
+        <div class="panel"> 
+
+            <div class="panel-header"> 
+
+                <div class="panel-title">⚠️ Failure Injection</div> 
+
+                <div class="panel-badge">CHAOS ENGINEERING</div> 
+
+            </div> 
+
+            <div class="failure-controls" id="failureControls"></div> 
+
+        </div> 
+
+ 
+
+        <!-- ==================== NETWORK TOPOLOGY ==================== --> 
+
+        <div class="panel"> 
+
+            <div class="panel-header"> 
+
+                <div class="panel-title">🌐 Network Topology</div> 
+
+                <div class="panel-badge">LIVE</div> 
+
+            </div> 
+
+            <div class="network-diagram"> 
+
+                <div class="network-node"> 
+
+                    <div class="node-icon">💻</div> 
+
+                    <div class="node-label">CLIENT</div> 
+
+                </div> 
+
+                <div class="network-node"> 
+
+                    <div class="node-icon">🔀</div> 
+
+                    <div class="node-label">SWITCH</div> 
+
+                </div> 
+
+                <div class="network-node"> 
+
+                    <div class="node-icon">🖧</div> 
+
+                    <div class="node-label">DC/DNS/DHCP</div> 
+
+                </div> 
+
+            </div> 
+
+        </div> 
+
+ 
+
+        <!-- ==================== ASSESSMENT PANEL ==================== --> 
+
+        <div class="panel assessment-panel" id="assessmentPanel" style="display: none;"> 
+
+            <div class="panel-header"> 
+
+                <div class="panel-title">📊 Operational Assessment</div> 
+
+                <div class="panel-badge">COMPLETED</div> 
+
+            </div> 
+
+            <div class="assessment-grid"> 
+
+                <div class="metric"> 
+
+                    <div class="metric-value" id="metricTime">00:00</div> 
+
+                    <div class="metric-label">Resolution Time</div> 
+
+                </div> 
+
+                <div class="metric"> 
+
+                    <div class="metric-value" id="metricEvents">0</div> 
+
+                    <div class="metric-label">Events Analyzed</div> 
+
+                </div> 
+
+                <div class="metric"> 
+
+                    <div class="metric-value" id="metricFailures">0</div> 
+
+                    <div class="metric-label">Failures Encountered</div> 
+
+                </div> 
+
+                <div class="metric"> 
+
+                    <div class="metric-value" id="metricScore">0%</div> 
+
+                    <div class="metric-label">Success Rate</div> 
+
+                </div> 
+
+            </div> 
+
+            <div class="maturity-rating"> 
+
+                <div class="maturity-level" id="maturityLevel">OPERATIONAL MATURITY: TRAINEE</div> 
+
+            </div> 
+
+        </div> 
+
+ 
+
+    </div> 
+
+ 
+
+    <script> 
+
+        // ==================== SIMULATION ENGINE ==================== // 
+
+ 
+
+        class EnterpriseSimulator { 
+
+            constructor() { 
+
+                // State Management 
+
+                this.currentStage = 0; 
+
+                this.stages = [ 
+
+                    { id: 0, name: 'Client Boot', status: 'WAIT', locked: false }, 
+
+                    { id: 1, name: 'DHCP Discover', status: 'WAIT', locked: true }, 
+
+                    { id: 2, name: 'DHCP DORA', status: 'WAIT', locked: true }, 
+
+                    { id: 3, name: 'DNS Resolution', status: 'WAIT', locked: true }, 
+
+                    { id: 4, name: 'DC Discovery', status: 'WAIT', locked: true }, 
+
+                    { id: 5, name: 'Kerberos Auth', status: 'WAIT', locked: true }, 
+
+                    { id: 6, name: 'GPO Execution', status: 'WAIT', locked: true } 
+
+                ]; 
+
+ 
+
+                // Service Engines 
+
+                this.dhcpEngine = new DHCPEngine(); 
+
+                this.dnsEngine = new DNSEngine(); 
+
+                this.adEngine = new ADEngine(); 
+
+ 
+
+                // Client State 
+
+                this.clientState = { 
+
+                    ip: null, 
+
+                    subnet: null, 
+
+                    gateway: null, 
+
+                    dns: null, 
+
+                    domain: null, 
+
+                    authenticated: false, 
+
+                    gpoApplied: false 
+
+                }; 
+
+ 
+
+                // Failure Injection 
+
+                this.failures = { 
+
+                    dhcpScopeExhausted: false, 
+
+                    dnsSrvMissing: false, 
+
+                    kerberosTimeSkew: false, 
+
+                    sysvolUnavailable: false 
+
+                }; 
+
+ 
+
+                // Metrics 
+
+                this.startTime = null; 
+
+                this.eventCount = 0; 
+
+                this.failureCount = 0; 
+
+ 
+
+                this.init(); 
+
+            } 
+
+ 
+
+            init() { 
+
+                this.renderStages(); 
+
+                this.renderFailureControls(); 
+
+                this.updateClientStatus(); 
+
+                this.updateServerStatus(); 
+
+                this.attachEventListeners(); 
+
+                this.startClock(); 
+
+            } 
+
+ 
+
+            // ==================== STAGE MANAGEMENT ==================== // 
+
+ 
+
+            renderStages() { 
+
+                const grid = document.getElementById('stagesGrid'); 
+
+                grid.innerHTML = ''; 
+
+                this.stages.forEach((stage, index) => { 
+
+                    const stageDiv = document.createElement('div'); 
+
+                    stageDiv.className = `stage ${stage.locked ? 'locked' : ''} ${index === this.currentStage ? 'active' : ''} ${stage.status === 'OK' ? 'completed' : ''} ${stage.status === 'FAIL' ? 'failed' : ''}`; 
+
+                    stageDiv.innerHTML = ` 
+
+                        <div class="stage-number">STAGE ${index + 1}</div> 
+
+                        <div class="stage-name">${stage.name}</div> 
+
+                        <div class="stage-status ${stage.status.toLowerCase()}">${stage.status}</div> 
+
+                    `; 
+
+                    grid.appendChild(stageDiv); 
+
+                }); 
+
+                document.getElementById('currentStageDisplay').textContent = `STAGE ${this.currentStage + 1}/7`; 
+
+            } 
+
+ 
+
+            executeCurrentStage() { 
+
+                if (this.startTime === null) { 
+
+                    this.startTime = Date.now(); 
+
+                } 
+
+ 
+
+                const stage = this.stages[this.currentStage]; 
+
+                if (stage.locked || stage.status === 'OK') return; 
+
+ 
+
+                stage.status = 'RUNNING'; 
+
+                this.renderStages(); 
+
+ 
+
+                // Execute stage logic with delay for realism 
+
+                setTimeout(() => { 
+
+                    let success = false; 
+
+                    switch (this.currentStage) { 
+
+                        case 0: success = this.executeClientBoot(); break; 
+
+                        case 1: success = this.executeDHCPDiscover(); break; 
+
+                        case 2: success = this.executeDHCPDORA(); break; 
+
+                        case 3: success = this.executeDNSResolution(); break; 
+
+                        case 4: success = this.executeDCDiscovery(); break; 
+
+                        case 5: success = this.executeKerberosAuth(); break; 
+
+                        case 6: success = this.executeGPO(); break; 
+
+                    } 
+
+ 
+
+                    stage.status = success ? 'OK' : 'FAIL'; 
+
+                    this.renderStages(); 
+
+ 
+
+                    if (success) { 
+
+                        if (this.currentStage < this.stages.length - 1) { 
+
+                            this.stages[this.currentStage + 1].locked = false; 
+
+                            this.currentStage++; 
+
+                        } else { 
+
+                            this.showAssessment(); 
+
+                        } 
+
+                    } else { 
+
+                        this.failureCount++; 
+
+                    } 
+
+ 
+
+                    this.renderStages(); 
+
+                    this.updateClientStatus(); 
+
+                    this.updateServerStatus(); 
+
+                }, 1500); 
+
+            } 
+
+ 
+
+            // ==================== STAGE EXECUTORS ==================== // 
+
+ 
+
+            executeClientBoot() { 
+
+                this.logClient('info', 'CLIENT', 'System power on sequence initiated'); 
+
+                this.logClient('info', 'BIOS', 'POST completed successfully'); 
+
+                this.logClient('info', 'BOOTLOADER', 'Loading network drivers...'); 
+
+                this.logClient('success', 'SYSTEM', 'Client ready for network configuration'); 
+
+                this.eventCount += 4; 
+
+                return true; 
+
+            } 
+
+ 
+
+            executeDHCPDiscover() { 
+
+                this.logClient('info', 'DHCP', 'Broadcasting DHCPDISCOVER on 255.255.255.255'); 
+
+                this.logServer('info', 'DHCP', 'Received DHCPDISCOVER from MAC: 00:1A:2B:3C:4D:5E'); 
+
+                 
+
+                if (this.failures.dhcpScopeExhausted) { 
+
+                    this.logServer('error', 'DHCP', 'SCOPE EXHAUSTED: No available IP addresses in pool'); 
+
+                    this.logClient('error', 'DHCP', 'No DHCPOFFER received. Timeout after 60 seconds.'); 
+
+                    this.eventCount += 4; 
+
+                    return false; 
+
+                } 
+
+ 
+
+                this.logServer('info', 'DHCP', 'Checking available IP addresses in scope 10.10.10.0/24'); 
+
+                this.logServer('success', 'DHCP', 'Offering IP: 10.10.10.100'); 
+
+                this.logClient('success', 'DHCP', 'DHCPOFFER received from 10.10.10.1'); 
+
+                this.eventCount += 6; 
+
+                return true; 
+
+            } 
+
+ 
+
+            executeDHCPDORA() { 
+
+                this.logClient('info', 'DHCP', 'Sending DHCPREQUEST for 10.10.10.100'); 
+
+                this.logServer('info', 'DHCP', 'Processing DHCPREQUEST from client'); 
+
+                this.logServer('info', 'DHCP', 'Reserving IP 10.10.10.100 for 24 hours'); 
+
+                this.logServer('success', 'DHCP', 'DHCPACK sent with configuration:'); 
+
+                this.logServer('info', 'DHCP', '  IP Address: 10.10.10.100'); 
+
+                this.logServer('info', 'DHCP', '  Subnet Mask: 255.255.255.0'); 
+
+                this.logServer('info', 'DHCP', '  Default Gateway: 10.10.10.1'); 
+
+                this.logServer('info', 'DHCP', '  DNS Server: 10.10.10.10'); 
+
+                this.logClient('success', 'DHCP', 'DHCPACK received. Configuring interface...'); 
+
+                this.logClient('success', 'NETWORK', 'IP configuration complete. Network ready.'); 
+
+ 
+
+                this.clientState.ip = '10.10.10.100'; 
+
+                this.clientState.subnet = '255.255.255.0'; 
+
+                this.clientState.gateway = '10.10.10.1'; 
+
+                this.clientState.dns = '10.10.10.10'; 
+
+ 
+
+                this.eventCount += 10; 
+
+                return true; 
+
+            } 
+
+ 
+
+            executeDNSResolution() { 
+
+                this.logClient('info', 'DNS', 'Resolving domain: CORP.LOCAL'); 
+
+                this.logClient('info', 'DNS', 'Step 1: Checking DNS cache...'); 
+
+                this.logClient('info', 'DNS', '  Cache miss'); 
+
+                this.logClient('info', 'DNS', 'Step 2: Checking HOSTS file...'); 
+
+                this.logClient('info', 'DNS', '  No entry found'); 
+
+                this.logClient('info', 'DNS', 'Step 3: Querying DNS server 10.10.10.10'); 
+
+ 
+
+                this.logServer('info', 'DNS', 'Query received: CORP.LOCAL (Type: ANY)'); 
+
+                this.logServer('info', 'DNS', 'Searching forward lookup zone: CORP.LOCAL'); 
+
+                this.logServer('info', 'DNS', 'Querying SRV record: _ldap._tcp.CORP.LOCAL'); 
+
+ 
+
+                if (this.failures.dnsSrvMissing) { 
+
+                    this.logServer('error', 'DNS', 'SRV RECORD NOT FOUND: _ldap._tcp.CORP.LOCAL'); 
+
+                    this.logClient('error', 'DNS', 'Cannot locate domain controller. Resolution failed.'); 
+
+                    this.eventCount += 11; 
+
+                    return false; 
+
+                } 
+
+ 
+
+                this.logServer('success', 'DNS', 'SRV record found: DC01.CORP.LOCAL:389'); 
+
+                this.logServer('info', 'DNS', 'Resolving A record: DC01.CORP.LOCAL'); 
+
+                this.logServer('success', 'DNS', 'A record resolved: 10.10.10.10'); 
+
+                this.logClient('success', 'DNS', 'Domain controller located at 10.10.10.10'); 
+
+ 
+
+                this.clientState.domain = 'CORP.LOCAL'; 
+
+                this.eventCount += 15; 
+
+                return true; 
+
+            } 
+
+ 
+
+            executeDCDiscovery() { 
+
+                this.logClient('info', 'AD', 'Initiating domain controller discovery'); 
+
+                this.logClient('info', 'LDAP', 'Connecting to DC01.CORP.LOCAL:389'); 
+
+                this.logServer('info', 'AD', 'LDAP connection request from 10.10.10.100'); 
+
+                this.logServer('info', 'AD', 'Validating domain membership...'); 
+
+                this.logServer('success', 'AD', 'Domain: CORP.LOCAL verified'); 
+
+                this.logClient('success', 'AD', 'Domain controller DC01.CORP.LOCAL is operational'); 
+
+                this.eventCount += 6; 
+
+                return true; 
+
+            } 
+
+ 
+
+            executeKerberosAuth() { 
+
+                this.logClient('info', 'KERBEROS', 'Requesting TGT from KDC'); 
+
+                this.logServer('info', 'KDC', 'Authentication request received for user: admin@CORP.LOCAL'); 
+
+ 
+
+                if (this.failures.kerberosTimeSkew) { 
+
+                    this.logServer('error', 'KDC', 'TIME SKEW DETECTED: Client time differs by >5 minutes'); 
+
+                    this.logClient('error', 'KERBEROS', 'Authentication failed: KRB_AP_ERR_SKEW'); 
+
+                    this.eventCount += 4; 
+
+                    return false; 
+
+                } 
+
+ 
+
+                this.logServer('info', 'KDC', 'Validating credentials against Active Directory...'); 
+
+                this.logServer('success', 'KDC', 'User authenticated successfully'); 
+
+                this.logServer('success', 'KDC', 'Issuing TGT (Ticket Granting Ticket)'); 
+
+                this.logClient('success', 'KERBEROS', 'TGT received. Requesting service ticket...'); 
+
+                this.logServer('info', 'KDC', 'Service ticket request for CIFS/DC01.CORP.LOCAL'); 
+
+                this.logServer('success', 'KDC', 'Service ticket issued'); 
+
+                this.logClient('success', 'KERBEROS', 'Authentication complete'); 
+
+ 
+
+                this.clientState.authenticated = true; 
+
+                this.eventCount += 10; 
+
+                return true; 
+
+            } 
+
+ 
+
+            executeGPO() { 
+
+                this.logClient('info', 'GPO', 'Retrieving Group Policy Objects...'); 
+
+                this.logServer('info', 'SYSVOL', 'GPO request from WORKSTATION-01'); 
+
+ 
+
+                if (this.failures.sysvolUnavailable) { 
+
+                    this.logServer('error', 'SYSVOL', 'SYSVOL SHARE UNAVAILABLE: Cannot access policy files'); 
+
+                    this.logClient('error', 'GPO', 'Group Policy processing failed'); 
+
+                    this.eventCount += 4; 
+
+                    return false; 
+
+                } 
+
+ 
+
+                this.logServer('info', 'SYSVOL', 'Enumerating applicable GPOs...'); 
+
+                this.logServer('success', 'SYSVOL', 'Found 3 applicable policies'); 
+
+                this.logClient('info', 'GPO', 'Processing: Default Domain Policy'); 
+
+                this.logClient('info', 'GPO', 'Processing: Security Baseline Policy'); 
+
+                this.logClient('info', 'GPO', 'Processing: Desktop Configuration Policy'); 
+
+                this.logClient('success', 'GPO', 'Group Policy applied successfully'); 
+
+                this.logClient('success', 'SYSTEM', 'User environment ready. Login complete.'); 
+
+ 
+
+                this.clientState.gpoApplied = true; 
+
+                this.eventCount += 10; 
+
+                return true; 
+
+            } 
+
+ 
+
+            // ==================== STATUS UPDATES ==================== // 
+
+ 
+
+            updateClientStatus() { 
+
+                const container = document.getElementById('clientStatus'); 
+
+                container.innerHTML = ` 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">IP Address</span> 
+
+                        <span class="service-value">${this.clientState.ip || 'NOT ASSIGNED'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">Subnet Mask</span> 
+
+                        <span class="service-value">${this.clientState.subnet || 'NOT ASSIGNED'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">Default Gateway</span> 
+
+                        <span class="service-value">${this.clientState.gateway || 'NOT ASSIGNED'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">DNS Server</span> 
+
+                        <span class="service-value">${this.clientState.dns || 'NOT ASSIGNED'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">Domain</span> 
+
+                        <span class="service-value">${this.clientState.domain || 'NOT JOINED'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">Authentication</span> 
+
+                        <span class="service-value">${this.clientState.authenticated ? 'AUTHENTICATED' : 'NOT AUTHENTICATED'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">Group Policy</span> 
+
+                        <span class="service-value">${this.clientState.gpoApplied ? 'APPLIED' : 'NOT APPLIED'}</span> 
+
+                    </div> 
+
+                `; 
+
+            } 
+
+ 
+
+            updateServerStatus() { 
+
+                const container = document.getElementById('serverStatus'); 
+
+                container.innerHTML = ` 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">DHCP Service</span> 
+
+                        <span class="service-value">${this.failures.dhcpScopeExhausted ? 'SCOPE EXHAUSTED' : 'OPERATIONAL'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">DNS Service</span> 
+
+                        <span class="service-value">${this.failures.dnsSrvMissing ? 'SRV MISSING' : 'OPERATIONAL'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">Active Directory</span> 
+
+                        <span class="service-value">OPERATIONAL</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">Kerberos KDC</span> 
+
+                        <span class="service-value">${this.failures.kerberosTimeSkew ? 'TIME SKEW ERROR' : 'OPERATIONAL'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">SYSVOL Share</span> 
+
+                        <span class="service-value">${this.failures.sysvolUnavailable ? 'UNAVAILABLE' : 'OPERATIONAL'}</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">LDAP Service</span> 
+
+                        <span class="service-value">OPERATIONAL</span> 
+
+                    </div> 
+
+                    <div class="service-item"> 
+
+                        <span class="service-name">Active Connections</span> 
+
+                        <span class="service-value">${this.clientState.authenticated ? '1' : '0'}</span> 
+
+                    </div> 
+
+                `; 
+
+            } 
+
+ 
+
+            // ==================== LOGGING ==================== // 
+
+ 
+
+            logClient(type, source, message) { 
+
+                const container = document.getElementById('clientLogs'); 
+
+                const entry = document.createElement('div'); 
+
+                entry.className = `log-entry ${type}`; 
+
+                entry.innerHTML = ` 
+
+                    <span class="log-timestamp">${this.getTimestamp()}</span> 
+
+                    <span class="log-source">[${source}]</span> 
+
+                    <span class="log-message">${message}</span> 
+
+                `; 
+
+                container.appendChild(entry); 
+
+                container.scrollTop = container.scrollHeight; 
+
+            } 
+
+ 
+
+            logServer(type, source, message) { 
+
+                const container = document.getElementById('serverLogs'); 
+
+                const entry = document.createElement('div'); 
+
+                entry.className = `log-entry ${type}`; 
+
+                entry.innerHTML = ` 
+
+                    <span class="log-timestamp">${this.getTimestamp()}</span> 
+
+                    <span class="log-source">[${source}]</span> 
+
+                    <span class="log-message">${message}</span> 
+
+                `; 
+
+                container.appendChild(entry); 
+
+                container.scrollTop = container.scrollHeight; 
+
+            } 
+
+ 
+
+            getTimestamp() { 
+
+                const now = new Date(); 
+
+                return now.toISOString().split('T')[1].split('.')[0]; 
+
+            } 
+
+ 
+
+            // ==================== FAILURE INJECTION ==================== // 
+
+ 
+
+            renderFailureControls() { 
+
+                const container = document.getElementById('failureControls'); 
+
+                const failures = [ 
+
+                    { key: 'dhcpScopeExhausted', label: 'DHCP Scope Exhausted' }, 
+
+                    { key: 'dnsSrvMissing', label: 'DNS SRV Record Missing' }, 
+
+                    { key: 'kerberosTimeSkew', label: 'Kerberos Time Skew' }, 
+
+                    { key: 'sysvolUnavailable', label: 'SYSVOL Unavailable' } 
+
+                ]; 
+
+ 
+
+                failures.forEach(failure => { 
+
+                    const toggle = document.createElement('div'); 
+
+                    toggle.className = 'failure-toggle'; 
+
+                    toggle.innerHTML = ` 
+
+                        <span class="failure-label">${failure.label}</span> 
+
+                        <div class="toggle-switch" data-failure="${failure.key}"> 
+
+                            <div class="toggle-slider"></div> 
+
+                        </div> 
+
+                    `; 
+
+                    container.appendChild(toggle); 
+
+ 
+
+                    const switchEl = toggle.querySelector('.toggle-switch'); 
+
+                    switchEl.addEventListener('click', () => { 
+
+                        this.failures[failure.key] = !this.failures[failure.key]; 
+
+                        switchEl.classList.toggle('active', this.failures[failure.key]); 
+
+                        this.updateServerStatus(); 
+
+                    }); 
+
+                }); 
+
+            } 
+
+ 
+
+            // ==================== ASSESSMENT ==================== // 
+
+ 
+
+            showAssessment() { 
+
+                const panel = document.getElementById('assessmentPanel'); 
+
+                panel.style.display = 'block'; 
+
+ 
+
+                const elapsed = Math.floor((Date.now() - this.startTime) / 1000); 
+
+                const minutes = Math.floor(elapsed / 60); 
+
+                const seconds = elapsed % 60; 
+
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`; 
+
+ 
+
+                document.getElementById('metricTime').textContent = timeString; 
+
+                document.getElementById('metricEvents').textContent = this.eventCount; 
+
+                document.getElementById('metricFailures').textContent = this.failureCount; 
+
+ 
+
+                const successRate = Math.round((7 - this.failureCount) / 7 * 100); 
+
+                document.getElementById('metricScore').textContent = `${successRate}%`; 
+
+ 
+
+                let maturity = 'TRAINEE'; 
+
+                if (successRate === 100 && elapsed < 120) { 
+
+                    maturity = 'PRODUCTION-READY'; 
+
+                } else if (successRate >= 90 && this.failureCount <= 1) { 
+
+                    maturity = 'L2 ENGINEER'; 
+
+                } else if (successRate >= 70) { 
+
+                    maturity = 'L1 ENGINEER'; 
+
+                } 
+
+ 
+
+                document.getElementById('maturityLevel').textContent = `OPERATIONAL MATURITY: ${maturity}`; 
+
+            } 
+
+ 
+
+            // ==================== RESET ==================== // 
+
+ 
+
+            reset() { 
+
+                this.currentStage = 0; 
+
+                this.stages.forEach((stage, index) => { 
+
+                    stage.status = 'WAIT'; 
+
+                    stage.locked = index !== 0; 
+
+                }); 
+
+                this.clientState = { 
+
+                    ip: null, 
+
+                    subnet: null, 
+
+                    gateway: null, 
+
+                    dns: null, 
+
+                    domain: null, 
+
+                    authenticated: false, 
+
+                    gpoApplied: false 
+
+                }; 
+
+                this.failures = { 
+
+                    dhcpScopeExhausted: false, 
+
+                    dnsSrvMissing: false, 
+
+                    kerberosTimeSkew: false, 
+
+                    sysvolUnavailable: false 
+
+                }; 
+
+                this.startTime = null; 
+
+                this.eventCount = 0; 
+
+                this.failureCount = 0; 
+
+ 
+
+                document.getElementById('clientLogs').innerHTML = ''; 
+
+                document.getElementById('serverLogs').innerHTML = ''; 
+
+                document.getElementById('assessmentPanel').style.display = 'none'; 
+
+ 
+
+                // Reset toggle switches 
+
+                document.querySelectorAll('.toggle-switch').forEach(sw => sw.classList.remove('active')); 
+
+ 
+
+                this.renderStages(); 
+
+                this.updateClientStatus(); 
+
+                this.updateServerStatus(); 
+
+            } 
+
+ 
+
+            // ==================== EVENT LISTENERS ==================== // 
+
+ 
+
+            attachEventListeners() { 
+
+                document.getElementById('btnExecuteStage').addEventListener('click', () => { 
+
+                    this.executeCurrentStage(); 
+
+                }); 
+
+ 
+
+                document.getElementById('btnReset').addEventListener('click', () => { 
+
+                    if (confirm('Reset simulation? All progress will be lost.')) { 
+
+                        this.reset(); 
+
+                    } 
+
+                }); 
+
+            } 
+
+ 
+
+            // ==================== CLOCK ==================== // 
+
+ 
+
+            startClock() { 
+
+                setInterval(() => { 
+
+                    const now = new Date(); 
+
+                    const time = now.toTimeString().split(' ')[0]; 
+
+                    document.getElementById('clockDisplay').textContent = time; 
+
+                }, 1000); 
+
+            } 
+
+        } 
+
+ 
+
+        // ==================== SERVICE ENGINES ==================== // 
+
+ 
+
+        class DHCPEngine { 
+
+            constructor() { 
+
+                this.scope = { 
+
+                    network: '10.10.10.0', 
+
+                    mask: '255.255.255.0', 
+
+                    start: '10.10.10.100', 
+
+                    end: '10.10.10.200', 
+
+                    gateway: '10.10.10.1', 
+
+                    dns: '10.10.10.10', 
+
+                    leaseTime: 86400 
+
+                }; 
+
+                this.leases = []; 
+
+            } 
+
+ 
+
+            offerIP() { 
+
+                if (this.leases.length >= 100) { 
+
+                    return null; // Scope exhausted 
+
+                } 
+
+                const ip = `10.10.10.${100 + this.leases.length}`; 
+
+                return ip; 
+
+            } 
+
+ 
+
+            acknowledgeIP(ip) { 
+
+                this.leases.push({ ip, timestamp: Date.now() }); 
+
+                return true; 
+
+            } 
+
+        } 
+
+ 
+
+        class DNSEngine { 
+
+            constructor() { 
+
+                this.cache = {}; 
+
+                this.zones = { 
+
+                    'CORP.LOCAL': { 
+
+                        'DC01': '10.10.10.10', 
+
+                        '_ldap._tcp': { target: 'DC01.CORP.LOCAL', port: 389 } 
+
+                    } 
+
+                }; 
+
+            } 
+
+ 
+
+            resolve(query) { 
+
+                // Simplified resolution logic 
+
+                if (query.includes('_ldap._tcp')) { 
+
+                    return this.zones['CORP.LOCAL']['_ldap._tcp']; 
+
+                } 
+
+                return this.zones['CORP.LOCAL']['DC01']; 
+
+            } 
+
+        } 
+
+ 
+
+        class ADEngine { 
+
+            constructor() { 
+
+                this.domain = 'CORP.LOCAL'; 
+
+                this.users = [ 
+
+                    { username: 'admin', password: 'P@ssw0rd123', sid: 'S-1-5-21-...' } 
+
+                ]; 
+
+                this.policies = [ 
+
+                    'Default Domain Policy', 
+
+                    'Security Baseline Policy', 
+
+                    'Desktop Configuration Policy' 
+
+                ]; 
+
+            } 
+
+ 
+
+            authenticate(username, password) { 
+
+                const user = this.users.find(u => u.username === username && u.password === password); 
+
+                return user !== undefined; 
+
+            } 
+
+ 
+
+            getPolicies() { 
+
+                return this.policies; 
+
+            } 
+
+        } 
+
+ 
+
+        // ==================== INITIALIZE SIMULATOR ==================== // 
+
+ 
+
+        window.addEventListener('DOMContentLoaded', () => { 
+
+            window.simulator = new EnterpriseSimulator(); 
+
+        }); 
+
+ 
+
+    </script> 
+
+ 
+
+</body> 
+
+</html> 

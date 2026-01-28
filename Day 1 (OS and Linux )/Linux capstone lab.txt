@@ -1,0 +1,344 @@
+🧪 Linux Capstone Lab 
+
+User, Group, Directory & Permission Management (Bash Script) 
+
+ 
+ 
+
+🎯 Objective (What this script does) 
+
+This single script will: 
+
+Create groups 
+
+Create users 
+
+Assign shells 
+
+Add users to groups 
+
+Create directories 
+
+Assign ownership 
+
+Modify permissions 
+
+Change group ownership 
+
+Verify everything 
+
+This simulates real enterprise onboarding automation. 
+
+ 
+ 
+
+🧠 Scenario (Enterprise Context) 
+
+A company is onboarding new employees into IT, SOC, and HR teams. 
+
+Each team needs: 
+
+Dedicated users 
+
+Secure directories 
+
+Correct permissions 
+
+Least-privilege access 
+
+ 
+ 
+
+📁 Script Name 
+
+ 
+
+user_group_capstone.sh 
+ 
+
+ 
+ 
+
+🧾 STEP-BY-STEP BASH SCRIPT (CAPSTONE) 
+
+ 
+
+#!/bin/bash 
+ 
+
+############################################# 
+# Linux User & Group Management Capstone 
+# Author: Naveen Yadav 
+# Purpose: Enterprise onboarding automation 
+############################################# 
+
+# ------------------------------- 
+# STEP 0: Check for root access 
+# ------------------------------- 
+if [[ $EUID -ne 0 ]]; then 
+  echo "❌ Please run this script as root" 
+  exit 1 
+fi 
+ 
+
+echo "✅ Running as root. Starting setup..." 
+sleep 1 
+ 
+
+# ------------------------------- 
+# STEP 1: Create Groups 
+# ------------------------------- 
+echo "📌 Creating groups..." 
+ 
+
+groups=("it" "soc" "hr") 
+ 
+
+for group in "${groups[@]}" 
+do 
+  if getent group "$group" >/dev/null; then 
+    echo "ℹ️ Group $group already exists" 
+  else 
+    groupadd "$group" 
+    echo "✅ Group created: $group" 
+  fi 
+done 
+ 
+
+# ------------------------------- 
+# STEP 2: Create Users 
+# ------------------------------- 
+echo "📌 Creating users..." 
+ 
+
+declare -A users 
+users=( 
+  ["alice"]="it" 
+  ["bob"]="soc" 
+  ["carol"]="hr" 
+) 
+ 
+
+for user in "${!users[@]}" 
+do 
+  if id "$user" &>/dev/null; then 
+    echo "ℹ️ User $user already exists" 
+  else 
+    useradd -m -s /bin/bash "$user" 
+    echo "Password@123" | passwd --stdin "$user" &>/dev/null 
+    echo "✅ User created: $user" 
+  fi 
+done 
+ 
+
+# ------------------------------- 
+# STEP 3: Assign Users to Groups 
+# ------------------------------- 
+echo "📌 Assigning users to groups..." 
+ 
+
+for user in "${!users[@]}" 
+do 
+  group="${users[$user]}" 
+  usermod -aG "$group" "$user" 
+  echo "✅ $user added to group $group" 
+done 
+ 
+
+# ------------------------------- 
+# STEP 4: Create Department Directories 
+# ------------------------------- 
+echo "📌 Creating directories..." 
+ 
+
+base_dir="/company" 
+ 
+
+mkdir -p $base_dir/{it,soc,hr} 
+ 
+
+echo "✅ Directories created under $base_dir" 
+ 
+
+# ------------------------------- 
+# STEP 5: Change Ownership 
+# ------------------------------- 
+echo "📌 Setting ownership..." 
+ 
+
+chown -R :it  $base_dir/it 
+chown -R :soc $base_dir/soc 
+chown -R :hr  $base_dir/hr 
+ 
+
+echo "✅ Group ownership assigned" 
+ 
+
+# ------------------------------- 
+# STEP 6: Set Permissions 
+# ------------------------------- 
+echo "📌 Setting permissions..." 
+ 
+
+chmod 770 $base_dir/it 
+chmod 750 $base_dir/soc 
+chmod 700 $base_dir/hr 
+ 
+
+echo "✅ Permissions configured" 
+ 
+
+# ------------------------------- 
+# STEP 7: Verify Setup 
+# ------------------------------- 
+echo "📌 Verification Output" 
+ 
+
+echo "---- Groups ----" 
+getent group it soc hr 
+ 
+
+echo "---- Users ----" 
+id alice 
+id bob 
+id carol 
+ 
+
+echo "---- Directory Permissions ----" 
+ls -ld $base_dir/* 
+ 
+
+echo "🎉 Capstone setup completed successfully!" 
+ 
+
+ 
+ 
+
+🔍 Explanation (Trainer-Style) 
+
+🔹 #!/bin/bash 
+
+Declares bash interpreter 
+
+Mandatory for executable scripts 
+
+ 
+ 
+
+🔹 Root Check 
+
+ 
+
+if [[ $EUID -ne 0 ]]; then 
+ 
+
+$EUID = Effective User ID 
+
+User/group creation requires root 
+
+ 
+ 
+
+🔹 Groups Array 
+
+ 
+
+groups=("it" "soc" "hr") 
+ 
+
+Allows scalable automation 
+
+No hardcoding repeated commands 
+
+ 
+ 
+
+🔹 Associative Array (Users → Groups) 
+
+ 
+
+declare -A users 
+ 
+
+Maps each user to their department 
+
+Very interview-impressive 
+
+ 
+ 
+
+🔹 useradd -m -s /bin/bash 
+
+-m → create home directory 
+
+-s → assign login shell 
+
+ 
+ 
+
+🔹 usermod -aG 
+
+-a → append (do NOT remove existing groups) 
+
+-G → supplementary groups 
+
+⚠️ Missing -a is a common interview trap 
+
+ 
+ 
+
+🔹 Permissions Logic 
+
+Directory 
+
+Permission 
+
+Reason 
+
+IT 
+
+770 
+
+Full team collaboration 
+
+SOC 
+
+750 
+
+Restricted security access 
+
+HR 
+
+700 
+
+Highly confidential 
+
+ 
+ 
+
+🎓 Viva / Interview Questions 
+
+Why is usermod -aG safer than -G alone? 
+
+Difference between primary group and secondary group 
+
+Why HR directory has 700 permissions? 
+
+What happens if root check is removed? 
+
+How would you modify this script for 100 users? 
+
+ 
+ 
+
+🧠 Real-World Use Cases 
+
+Employee onboarding 
+
+SOC lab environment setup 
+
+Linux hardening 
+
+IAM automation 
+
+Blue Team practice labs 

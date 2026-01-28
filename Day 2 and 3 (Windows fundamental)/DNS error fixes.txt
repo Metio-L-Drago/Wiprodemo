@@ -1,0 +1,447 @@
+🌐 DNS Errors & Fixes — Using Wireshark (SOC Method) 
+
+SEE the "GetImage" in folder
+ 
+
+ 
+ 
+
+1️⃣ First: How DNS should work (baseline) 
+
+Normal DNS flow 
+
+Client sends DNS Query (UDP/53) 
+
+DNS server replies with DNS Response 
+
+Response contains: 
+
+IP address 
+
+NO error 
+
+In Wireshark, you should see: 
+
+ 
+
+Standard query 
+Standard query response, No error 
+ 
+
+ 
+ 
+
+2️⃣ Capture DNS traffic in Wireshark (MANDATORY) 
+
+Start capture on correct interface 
+
+Ethernet / Wi-Fi (the one with traffic) 
+
+Apply display filter: 
+
+ 
+
+dns 
+ 
+
+Or specific: 
+
+ 
+
+dns && ip.addr == <client-ip> 
+ 
+
+ 
+ 
+
+3️⃣ Common DNS Errors, Detection & Fix (REAL CASES) 
+
+ 
+ 
+
+❌ CASE 1: DNS Name Does Not Resolve 
+
+🔍 Wireshark symptom 
+
+ 
+
+Standard query response, Name Error 
+ 
+
+Also shown as: 
+
+ 
+
+RCODE: NXDOMAIN 
+ 
+
+Example in Wireshark 
+
+Query: googlee.com 
+
+Response: Name Error 
+
+Root Cause 
+
+Typo 
+
+Domain does not exist 
+
+Wrong internal domain 
+
+✅ Fix 
+
+Verify domain spelling 
+
+Check internal DNS zone 
+
+Test manually: 
+
+ 
+
+nslookup google.com 
+ 
+
+ 
+ 
+
+❌ CASE 2: DNS Server Not Responding 
+
+🔍 Wireshark symptom 
+
+Only DNS queries 
+
+❌ No responses 
+
+Repeated retransmissions 
+
+Filter to confirm: 
+
+ 
+
+dns && !(dns.flags.response == 1) 
+ 
+
+Root Cause 
+
+DNS server down 
+
+Firewall blocking UDP/53 
+
+Wrong DNS server IP 
+
+✅ Fix 
+
+Check reachability: 
+
+ 
+
+ping <dns-server-ip> 
+ 
+
+Check port 53: 
+
+ 
+
+nc -zv <dns-server-ip> 53 
+ 
+
+Update DNS server in: 
+
+/etc/resolv.conf 
+
+Network adapter settings 
+
+ 
+ 
+
+❌ CASE 3: SERVFAIL (Server Failure) 
+
+🔍 Wireshark symptom 
+
+ 
+
+Standard query response, Server failure 
+ 
+
+ 
+
+RCODE: SERVFAIL 
+ 
+
+Root Cause 
+
+DNS server misconfiguration 
+
+Broken DNS forwarder 
+
+DNSSEC failure 
+
+✅ Fix 
+
+Restart DNS service 
+
+Check logs: 
+
+ 
+
+journalctl -u named 
+ 
+
+Disable DNSSEC temporarily (for testing) 
+
+ 
+ 
+
+❌ CASE 4: Wrong IP Address Returned (DNS Poisoning / Misconfig) 
+
+🔍 Wireshark symptom 
+
+Domain resolves 
+
+But IP is suspicious or wrong 
+
+Example: 
+
+ 
+
+bank.com → 10.10.10.10 
+ 
+
+Detection filter: 
+
+ 
+
+dns && dns.flags.response == 1 
+ 
+
+Check: 
+
+Answer section 
+
+TTL 
+
+IP reputation 
+
+Root Cause 
+
+DNS cache poisoning 
+
+Rogue DNS server 
+
+Local hosts file override 
+
+✅ Fix 
+
+Flush DNS cache: 
+
+ 
+
+systemd-resolve --flush-caches 
+ 
+
+Check hosts file: 
+
+ 
+
+cat /etc/hosts 
+ 
+
+Force trusted DNS: 
+
+8.8.8.8 
+
+Internal enterprise DNS 
+
+ 
+ 
+
+❌ CASE 5: DNS Using TCP Instead of UDP (Performance Issue) 
+
+🔍 Wireshark symptom 
+
+ 
+
+DNS over TCP 
+ 
+
+Filter: 
+
+ 
+
+tcp.port == 53 
+ 
+
+Root Cause 
+
+Large DNS responses 
+
+Misconfigured firewall 
+
+Zone transfer attempts 
+
+✅ Fix 
+
+Allow UDP 53 
+
+Fix MTU issues 
+
+Check firewall rules 
+
+ 
+ 
+
+❌ CASE 6: Slow DNS Resolution (User Complaints) 
+
+🔍 Wireshark symptom 
+
+Long time gap between query and response 
+
+High RTT 
+
+Use: 
+
+ 
+
+dns.time 
+ 
+
+Root Cause 
+
+Slow upstream DNS 
+
+Recursive lookup delays 
+
+Network latency 
+
+✅ Fix 
+
+Use closer DNS server 
+
+Enable DNS caching 
+
+Reduce recursion depth 
+
+ 
+ 
+
+4️⃣ Wireshark Fields Every SOC Analyst Must Check 
+
+Inside DNS packet → Details: 
+
+Field 
+
+Meaning 
+
+Transaction ID 
+
+Match query & response 
+
+Flags 
+
+Query / Response 
+
+RCODE 
+
+Error type 
+
+Answers 
+
+Resolved IP 
+
+TTL 
+
+Cache duration 
+
+Response Time 
+
+Performance 
+
+ 
+ 
+
+5️⃣ SOC Quick DNS Investigation Playbook 
+
+Step-by-step 
+
+Capture traffic 
+
+Apply filter: dns 
+
+Check: 
+
+Is there a response? 
+
+RCODE value 
+
+IP correctness 
+
+Correlate with: 
+
+Firewall logs 
+
+System resolver config 
+
+Fix at: 
+
+Client 
+
+DNS server 
+
+Network firewall 
+
+ 
+ 
+
+6️⃣ Enterprise Verdict 
+
+Problem 
+
+Wireshark Detects 
+
+Fix Location 
+
+NXDOMAIN 
+
+✅ 
+
+User / DNS 
+
+No Response 
+
+✅ 
+
+Network / Firewall 
+
+SERVFAIL 
+
+✅ 
+
+DNS Server 
+
+Wrong IP 
+
+✅ 
+
+Security 
+
+Slow DNS 
+
+✅ 
+
+Performance 
+
+ 
+ 
+
+🔐 SECURITY NOTE (IMPORTANT) 
+
+Wireshark DNS analysis is critical for: 
+
+Malware C2 detection 
+
+Data exfiltration 
+
+DNS tunneling 
+
+Phishing domains 

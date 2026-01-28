@@ -1,0 +1,284 @@
+🔄 Step 8 – Change Group (Linux) 
+
+(chgrp – Change Group Ownership) 
+
+ 
+ 
+
+1️⃣ What “Change Group” Means (Plain English) 
+
+When you change group, you are saying: 
+
+“This file or directory should belong to THIS GROUP for access control.” 
+
+You are NOT changing the user owner 
+
+You are ONLY changing the group owner 
+
+This directly controls: 
+
+Which group members can access the file 
+
+Which group permissions (rwx) apply 
+
+ 
+ 
+
+2️⃣ Why Linux Has chgrp When chown Exists 
+
+Linux provides two ways to change group: 
+
+Command 
+
+Purpose 
+
+chown :group file 
+
+Change group (via ownership command) 
+
+chgrp group file 
+
+Change group only (dedicated command) 
+
+👉 Both do the same group change, but: 
+
+chgrp is safer 
+
+chown is more powerful 
+
+ 
+ 
+
+3️⃣ Step 8 – What We Are Doing in This Lab 
+
+👉 Goal: 
+
+Ensure each department directory belongs to the correct group. 
+
+Directory 
+
+Group 
+
+/company/it 
+
+it 
+
+/company/soc 
+
+soc 
+
+/company/hr 
+
+hr 
+
+ 
+ 
+
+4️⃣ Correct chgrp Commands (Manual Execution) 
+
+IT Directory 
+
+ 
+
+sudo chgrp it /company/it 
+ 
+
+SOC Directory 
+
+ 
+
+sudo chgrp soc /company/soc 
+ 
+
+HR Directory 
+
+ 
+
+sudo chgrp hr /company/hr 
+ 
+
+ 
+ 
+
+5️⃣ What Actually Changes After chgrp 
+
+Before: 
+
+ 
+
+ls -ld /company/it 
+ 
+
+ 
+
+drwxr-x--- root root /company/it 
+ 
+
+After: 
+
+ 
+
+sudo chgrp it /company/it 
+ls -ld /company/it 
+ 
+
+ 
+
+drwxr-x--- root it /company/it 
+ 
+
+🔍 Only the GROUP column changes 
+
+ 
+ 
+
+6️⃣ Why This Matters with Permissions 
+
+Example permissions: 
+
+ 
+
+chmod 770 /company/it 
+ 
+
+Meaning: 
+
+ 
+
+Owner (root) → rwx 
+Group (it)   → rwx 
+Others       → --- 
+ 
+
+👉 If group is wrong, correct permissions are useless 
+
+ 
+ 
+
+7️⃣ Recursive Group Change (Enterprise Use) 
+
+To apply group ownership to all subfiles: 
+
+ 
+
+sudo chgrp -R it /company/it 
+ 
+
+📌 Used during: 
+
+Department migrations 
+
+Bulk onboarding 
+
+SOC lab resets 
+
+ 
+ 
+
+8️⃣ chgrp vs chown :group (Interview Comparison) 
+
+Feature 
+
+chgrp 
+
+chown :group 
+
+Changes group 
+
+✅ 
+
+✅ 
+
+Changes user 
+
+❌ 
+
+❌ (if : used) 
+
+Safer 
+
+✅ 
+
+⚠️ 
+
+Used by junior admins 
+
+✅ 
+
+❌ 
+
+Used in automation 
+
+⚠️ 
+
+✅ 
+
+👉 In exams/interviews: 
+
+Prefer chgrp for clarity 
+
+ 
+ 
+
+9️⃣ Common Mistakes (VERY IMPORTANT) 
+
+❌ Group does not exist: 
+
+ 
+
+chgrp finance /company/it 
+ 
+
+Error: 
+
+ 
+
+invalid group 
+ 
+
+✅ Fix: 
+
+ 
+
+groupadd finance 
+ 
+
+ 
+ 
+
+❌ Forgetting sudo 
+
+ 
+
+chgrp it /company/it 
+ 
+
+Error: 
+
+ 
+
+Operation not permitted 
+ 
+
+ 
+ 
+
+🔍 Verification (Must Do) 
+
+ 
+
+ls -ld /company/* 
+ 
+
+Check 3rd column (Group). 
+
+ 
+ 
+
+🎓 Interview-Perfect Answer (Memorize) 
+
+“chgrp changes the group ownership of a file or directory. 
+
+It controls which group permissions apply. 
+
+In enterprise environments, directories are owned by root but assigned to department groups using chgrp for controlled collaboration.” 

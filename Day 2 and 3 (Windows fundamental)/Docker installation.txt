@@ -1,0 +1,136 @@
+PHASE 1: Docker Installation on Ubuntu (Production-Safe Method) 
+
+Works on Ubuntu 20.04 / 22.04 / 24.04 
+
+ 
+ 
+
+1️⃣ Update the system (always first) 
+
+ 
+
+sudo apt update 
+sudo apt upgrade -y 
+ 
+
+Why? 
+
+Ensures security patches and dependency compatibility before installing Docker. 
+
+ 
+ 
+
+2️⃣ Install prerequisite packages 
+
+ 
+
+sudo apt install -y ca-certificates curl gnupg lsb-release 
+ 
+
+What these do (important): 
+
+ca-certificates → Secure HTTPS downloads 
+
+curl → Download Docker GPG key 
+
+gnupg → Verify package authenticity 
+
+lsb-release → Identify Ubuntu version 
+
+ 
+ 
+
+3️⃣ Add Docker’s official GPG key 
+
+ 
+
+sudo mkdir -p /etc/apt/keyrings 
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg 
+ 
+
+Enterprise reason: 
+
+Prevents tampered or fake Docker packages. 
+
+ 
+ 
+
+4️⃣ Add Docker repository 
+
+ 
+
+echo \ 
+"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \ 
+https://download.docker.com/linux/ubuntu \ 
+$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null 
+ 
+
+ 
+ 
+
+5️⃣ Install Docker Engine 
+
+ 
+
+sudo apt update 
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin 
+ 
+
+ 
+ 
+
+6️⃣ Verify Docker installation 
+
+ 
+
+docker --version 
+ 
+
+Expected output (example): 
+
+ 
+
+Docker version 26.x.x 
+ 
+
+ 
+ 
+
+7️⃣ Start and enable Docker service 
+
+ 
+
+sudo systemctl start docker 
+sudo systemctl enable docker 
+ 
+
+Check status: 
+
+ 
+
+systemctl status docker 
+ 
+
+ 
+ 
+
+8️⃣ Allow non-root Docker usage (VERY IMPORTANT) 
+
+ 
+
+sudo usermod -aG docker $USER 
+ 
+
+Then logout & login again. 
+
+Verify: 
+
+ 
+
+docker run hello-world 
+ 
+
+If this runs → Docker is correctly installed ✅ 
+
+ 
+ 
