@@ -1,9 +1,5 @@
 // 1. find area of diff shapes , circle, square , rectangle using constructors (overloading)(Shape-class)
-// 2. Create a class Student - name , rollno , schoolname , one student object will try to update the schoolname (method)
-// and then disply details for 2 3 objects
-// 3.     class Marks -- m1,m2,m3,m4,m5  , method - calculateMarks()  total 500
-//     class StudentDeatils - name,rollm , percentge (child of marks class)
-//     displayDetails ( name, rollno , calculatepercentage)
+
 // 4. Create a class calculaet student result and if marks are greater than 100 & <0  , 
 //    then throw custom exception for marks not valid
 
@@ -47,6 +43,7 @@ class Shape{
     new Area(s);
     new Area(l,b);
 
+    
     }
 
 }

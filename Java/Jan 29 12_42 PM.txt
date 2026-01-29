@@ -1,0 +1,231 @@
+
+
+import java.util.ArrayList;
+
+public class Demo {
+
+	public static void main(String[] args) {
+		
+		ArrayList<String> list=new ArrayList<String>();
+		list.add("ruby");
+		list.add("javascript");
+		list.add("AIML");
+		
+		
+		ArrayList<String> list2=new ArrayList<String>();
+		list2.add("java");
+		list2.add("c++");
+		list2.add("python");
+		list2.add("c#");
+
+		ArrayList<String> list3=new ArrayList<String>();
+		list3.add("c");
+		list3.add("react");
+		list3.add("angular");
+		
+		
+		ArrayList<ArrayList<String>> lists=new ArrayList<>();
+		lists.add(list);
+		lists.add(list2);
+		lists.add(list3);
+		
+		
+		
+		
+		for(  ArrayList<String> element :  lists)
+		   {
+			   
+			   System.out.println(element);
+		   }
+		  
+	}
+
+}
+
+/////////////////////
+
+import java.util.ArrayList;
+
+public class Main {
+
+	public static void main(String[] args) {
+		
+		Courses c1=new Courses("java" ,4999);
+		Courses c2=new Courses("js" ,3999);
+		Courses c3=new Courses("python" ,5999);
+		Courses c4=new Courses("c++" ,1999);
+		
+		ArrayList<Courses> list=new ArrayList<Courses>();
+	  list.add(c1);
+	  list.add(c2); 
+	  list.add(c3);  
+	  list.add(c4);
+	  
+	  
+		   for( Courses  element :  list)
+		   {
+			      if(element.lang=="java")
+			   System.out.println(element.lang+" - "+element.price);
+		   }
+		   
+	
+	}
+
+}
+
+
+class Courses
+{
+	String lang;
+	int price;
+	
+	public Courses(String lang, int price) {
+		this.lang = lang;
+		this.price = price;
+	}
+	
+}
+
+
+// List of courses
+// Language :  4999
+
+
+///////////////////////////////////////////////////
+
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+
+public class Main {
+
+	public static void main(String[] args) {
+		
+		Courses c1=new Courses("java" ,4999);
+		Courses c2=new Courses("js" ,3999);
+		Courses c3=new Courses("python" ,5999);
+		Courses c4=new Courses("c++" ,1999);
+		
+		LinkedList<Courses> list=new LinkedList<Courses>();
+	  list.add(c1);
+	  list.add(c2); 
+	  list.add(c3);  
+	  list.add(c4);
+	  
+	  
+		   for( Courses  element :  list)
+		   {
+			      if(element.lang=="java")
+			   System.out.println(element.lang+" - "+element.price);
+		   }
+		   
+	
+	}
+
+}
+
+
+class Courses
+{
+	String lang;
+	int price;
+	
+	public Courses(String lang, int price) {
+		this.lang = lang;
+		this.price = price;
+	}
+	
+}
+
+
+// List of courses
+// Language :  4999
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////
+
+		// KEYs are always unique
+		HashMap<Integer,String > map=new HashMap<>();
+		map.put(1 ,"java");
+		map.put(2, "c++");
+		map.put(3, "react");
+	  
+	  
+		   for( Map.Entry<Integer, String>   obj  :  map.entrySet())
+		   {
+			    System.out.println(obj.getKey()+" - "+obj.getValue());
+			  
+		   }
+		   
+	
+	}
+  
+  
+  
+  ////////////////////////////////////////////////////////
+  
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+
+public class Main {
+
+	public static void main(String[] args) {
+		
+		Courses c1=new Courses("java" ,4999);
+		Courses c2=new Courses("js" ,3999);
+		Courses c3=new Courses("python" ,5999);
+		Courses c4=new Courses("c++" ,1999);
+		
+	
+		// KEYs are always unique
+		HashMap<Integer,Courses > map=new HashMap<>();
+		map.put(1,c1);
+		map.put(2,c2);
+		map.put(3, c3);
+		map.put(4, c3);
+	  
+		   for( Map.Entry<Integer, Courses>   obj  :  map.entrySet())
+		   {
+			   
+			   
+			   Courses c=obj.getValue();
+			    System.out.println(obj.getKey()+" - "+c.lang+" - "+c.price);
+			  
+		   }
+		   
+	
+	}
+
+}
+
+
+class Courses
+{
+	String lang;
+	int price;
+	
+	public Courses(String lang, int price) {
+		this.lang = lang;
+		this.price = price;
+	}
+	
+}
+
+
+// List of courses
+// Language :  4999
